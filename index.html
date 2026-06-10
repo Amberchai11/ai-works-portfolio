@@ -19,7 +19,7 @@
 <link rel="preload" as="image" href="image/hero.webp" type="image/webp" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     /* palette — base */
@@ -601,16 +601,29 @@
   onScroll();
 
   /* ---------- lightbox (accessible) ---------- */
+  /** Defense-in-depth: only local image assets may be loaded into the lightbox. */
+  var SAFE_IMG = /^image\/[A-Za-z0-9._-]+\.(?:png|jpe?g|webp|gif)$/;
+
   var lb = document.getElementById('lightbox');
   var lbImg = document.getElementById('lb-img');
   var lbTitle = document.getElementById('lb-title');
   var lbDesc = document.getElementById('lb-desc');
   var lbClose = document.getElementById('lb-close');
+  /** @type {HTMLElement|null} element focus is restored to when the lightbox closes */
   var lastFocused = null;
 
+  /**
+   * Open the lightbox for a gallery card trigger.
+   * Text is written via textContent (no HTML injection), and the image path is
+   * validated against SAFE_IMG so a malformed/untrusted data-img cannot load
+   * an off-origin or non-image resource.
+   * @param {HTMLElement} trigger card element carrying data-img/title/desc
+   */
   function openLightbox(trigger){
+    var img = trigger.getAttribute('data-img') || '';
+    if(!SAFE_IMG.test(img)){ return; } // reject anything that is not a local image asset
     lastFocused = trigger;
-    lbImg.src = trigger.getAttribute('data-img');
+    lbImg.src = img;
     lbImg.alt = trigger.getAttribute('data-title') || '';
     lbTitle.textContent = trigger.getAttribute('data-title') || '';
     lbDesc.textContent = trigger.getAttribute('data-desc') || '';
@@ -620,6 +633,7 @@
     lbClose.focus();
     document.addEventListener('keydown', onKeydown);
   }
+  /** Close the lightbox, then restore page scroll and focus. */
   function closeLightbox(){
     lb.classList.remove('open');
     lb.hidden = true;
@@ -627,13 +641,14 @@
     document.removeEventListener('keydown', onKeydown);
     if(lastFocused && typeof lastFocused.focus === 'function'){ lastFocused.focus(); }
   }
+  /**
+   * Keyboard handling while open: Esc closes; Tab is trapped on the close button
+   * (the only focusable control inside the dialog).
+   * @param {KeyboardEvent} e
+   */
   function onKeydown(e){
     if(e.key === 'Escape'){ e.preventDefault(); closeLightbox(); return; }
-    if(e.key === 'Tab'){
-      // focus trap: only lb-close is focusable inside
-      e.preventDefault();
-      lbClose.focus();
-    }
+    if(e.key === 'Tab'){ e.preventDefault(); lbClose.focus(); }
   }
   document.querySelectorAll('.lb-trigger').forEach(function(t){
     t.addEventListener('click', function(){ openLightbox(t); });
