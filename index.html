@@ -11,10 +11,12 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="yuta.works — AI Works Portfolio">
 <meta property="og:description" content="Claude Code を中核に構築したアプリ・スキル・Subagent の成果物カタログ。">
-<meta property="og:image" content="image/catalog_full.png">
+<meta property="og:image" content="image/hero.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <!-- Favicon: inline SVG (no extra request) -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%231A1A1A'/%3E%3Crect x='6' y='22' width='20' height='4' fill='%23FFD500'/%3E%3Ctext x='16' y='18' font-family='Arial' font-size='15' font-weight='bold' fill='white' text-anchor='middle'%3Ey%3C/text%3E%3C/svg%3E">
+<!-- above-the-fold hero illustration: preload the primary (webp) for priority -->
+<link rel="preload" as="image" href="image/hero.webp" type="image/webp" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -35,11 +37,19 @@
     --gutter:24px;
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  html{scroll-behavior:smooth}
+  html{scroll-behavior:smooth;background:var(--white)}
   body{
-    font-family:var(--sans);background:var(--white);color:var(--ink);
+    font-family:var(--sans);background:transparent;color:var(--ink);
     line-height:1.6;font-weight:400;-webkit-font-smoothing:antialiased;
     text-rendering:optimizeLegibility;
+  }
+  /* very subtle page-wide wash of the hero illustration — top-anchored, low opacity,
+     fixed & pointer-events:none so it never interferes. Sits over the opaque white <html>
+     base and under all content; kept faint to protect text contrast everywhere. */
+  html::before{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:url("image/hero.webp") top center / 1400px auto no-repeat;
+    opacity:.07;
   }
   a{color:inherit;text-decoration:none}
   img{max-width:100%;display:block}
@@ -81,7 +91,23 @@
   .nav-links a.active::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--yellow)}
 
   /* ============ HERO ============ */
-  header.hero{padding:clamp(72px,12vw,140px) 0 clamp(64px,9vw,104px)}
+  header.hero{padding:clamp(56px,9vw,104px) 0 clamp(56px,8vw,96px);position:relative;overflow:hidden}
+  /* two-column hero: copy in the LEFT negative space, illustration on the RIGHT */
+  .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,4vw,56px);align-items:center}
+  .hero-copy{position:relative;z-index:2;max-width:34rem}
+  /* illustration column — the pastel art (character + icons already sit on its right side) */
+  .hero-art{position:relative;z-index:1}
+  .hero-art picture,.hero-art img{display:block;width:100%;height:auto}
+  .hero-art img{
+    /* the source already has clean negative space on the left; this keeps it sharp & bright */
+    filter:saturate(1.02);
+  }
+  /* subtle white→transparent scrim on the left edge of the art so, on narrow gaps,
+     the copy column always meets a light field (protects AA contrast) */
+  .hero-art::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+    background:linear-gradient(90deg,#fff 0%,rgba(255,255,255,.35) 14%,transparent 32%);
+  }
   h1{
     font-size:clamp(2.5rem,7vw,4.5rem);line-height:1.05;font-weight:700;
     letter-spacing:-.025em;color:var(--ink);margin:24px 0 0;max-width:16ch;
@@ -104,11 +130,7 @@
   .stat .n{font-size:clamp(2.25rem,4vw,2.875rem);font-weight:800;color:var(--ink);letter-spacing:-.02em;line-height:1}
   .stat .l{font-size:0.6875rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin-top:10px;font-weight:600}
 
-  /* hero feature image — a screenshot, so color is allowed here */
-  .hero-feature{margin:64px 0 0;border:1px solid var(--line);overflow:hidden}
-  .hero-feature button{display:block;width:100%;border:none;background:none;cursor:pointer;padding:0}
-  .hero-feature img{width:100%;transition:opacity .2s ease}
-  .hero-feature button:hover img{opacity:.92}
+  /* (hero feature screenshot removed — the pastel illustration is now the hero visual) */
 
   /* ============ SECTIONS ============ */
   section{padding:clamp(64px,11vw,128px) 0}
@@ -208,6 +230,13 @@
   }
 
   /* ============ RESPONSIVE ============ */
+  @media (max-width:860px){
+    /* stack hero: copy first (full negative-space legibility), illustration below */
+    .hero-grid{grid-template-columns:1fr;gap:8px}
+    .hero-copy{max-width:none;order:1}
+    .hero-art{order:2;margin-top:8px}
+    .hero-art::before{display:none} /* no overlap to scrim when stacked */
+  }
   @media (max-width:768px){
     #about .about-grid{grid-template-columns:1fr;gap:32px}
     .nav-links{gap:20px}
@@ -237,24 +266,30 @@
 <main id="top">
 
 <header class="hero"><div class="wrap">
-  <div class="kicker reveal">AI Development Portfolio</div>
-  <h1 class="reveal">AI で作った成果物のカタログ</h1>
-  <div class="hero-rule reveal" aria-hidden="true"></div>
-  <p class="lead reveal">Claude Code を中核に構築したアプリ・スキル・Subagent を、スクリーンショットで一覧化。手を動かして検証した制作物のみを掲載しています。</p>
-  <div class="hero-cta reveal">
-    <a href="#works" class="btn btn-primary">作品を見る</a>
-    <a href="#contact" class="btn btn-secondary">お問い合わせ</a>
-  </div>
-  <div class="stats reveal">
-    <div class="stat"><div class="n">4</div><div class="l">Apps</div></div>
-    <div class="stat"><div class="n">5</div><div class="l">Skills</div></div>
-    <div class="stat"><div class="n">7</div><div class="l">Subagents</div></div>
-  </div>
-  <div class="hero-feature reveal">
-    <button type="button" class="lb-trigger" data-img="image/catalog_full.png"
-            data-title="作成物カタログ ダッシュボード" data-desc="制作物全件をひと目で見渡せるカタログ UI。フィルターと検索で素早く目的の成果物にたどり着けます。">
-      <img src="image/catalog_full.png" alt="作成物カタログのダッシュボード画面。アプリ・スキル・Subagent が一覧表示されている。" loading="lazy">
-    </button>
+  <div class="hero-grid">
+    <div class="hero-copy">
+      <div class="kicker reveal">AI Development Portfolio</div>
+      <h1 class="reveal">AI で作った成果物のカタログ</h1>
+      <div class="hero-rule reveal" aria-hidden="true"></div>
+      <p class="lead reveal">Claude Code を中核に構築したアプリ・スキル・Subagent を、スクリーンショットで一覧化。手を動かして検証した制作物のみを掲載しています。</p>
+      <div class="hero-cta reveal">
+        <a href="#works" class="btn btn-primary">作品を見る</a>
+        <a href="#contact" class="btn btn-secondary">お問い合わせ</a>
+      </div>
+      <div class="stats reveal">
+        <div class="stat"><div class="n">4</div><div class="l">Apps</div></div>
+        <div class="stat"><div class="n">5</div><div class="l">Skills</div></div>
+        <div class="stat"><div class="n">7</div><div class="l">Subagents</div></div>
+      </div>
+    </div>
+    <div class="hero-art reveal">
+      <picture>
+        <source srcset="image/hero.webp" type="image/webp">
+        <img src="image/hero.jpg" width="2752" height="1536"
+             alt="パステルカラーのイラスト。フードをかぶった制作者のキャラクターが、ノートPC・カメラ・コーヒー・花・メモ帳・星のアイコンに囲まれて浮かんでいる。"
+             loading="eager" fetchpriority="high" decoding="async">
+      </picture>
+    </div>
   </div>
 </div></header>
 
